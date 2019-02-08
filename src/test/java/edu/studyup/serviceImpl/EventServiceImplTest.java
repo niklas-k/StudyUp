@@ -69,11 +69,80 @@ class EventServiceImplTest {
 	}
 	
 	@Test
-	void testUpdateEvent_WrongEventID_badCase() {
+	void testUpdateEvent_WrongEventID_BadCase() {
 		int eventID = 3;
 		Assertions.assertThrows(StudyUpException.class, () -> {
 			eventServiceImpl.updateEventName(eventID, "Renamed Event 3");
 		  });
+	}
+	
+	@Test
+	void testUpdateEventName_NameTooLong_BadCase() {
+		int eventID = 1;
+		Assertions.assertThrows(StudyUpException.class, () -> {
+			eventServiceImpl.updateEventName(eventID, "This event name is waaaay too long");
+		  });
+	}
+	
+	@Test
+	void testUpdateEventName_ReturnsCorrectEvent_GoodCase() throws StudyUpException {
+		int eventID = 1;
+		assertEquals("Renamed Event 1", eventServiceImpl.updateEventName(eventID, "Renamed Event 1").getName());
+	}
+	
+	@Test
+	void testUpdateEventName_EmptyString_BadCase() {
+		int eventID = 1;
+		// should throw exception if event name is empty
+		Assertions.assertThrows(StudyUpException.class, () -> {
+			eventServiceImpl.updateEventName(eventID, "");
+		  });
+	}
+	
+	@Test
+	void testAddStudentToEvent_NullEvent_BadCase() {
+		int eventID = 2;
+		
+		//Create Student
+		Student student1 = new Student();
+		student1.setFirstName("John");
+		student1.setLastName("Davis");
+		student1.setEmail("JohnDavis@email.com");
+		student1.setId(2);
+		
+		Assertions.assertThrows(StudyUpException.class, () -> {
+			eventServiceImpl.addStudentToEvent(student1, eventID);
+		  });
+	}
+	
+	@Test
+	void testAddStudent_EmptyEvent_GoodCase() throws StudyUpException {
+		//Create Event2 without any students
+		Event event = new Event();
+		event.setEventID(2);
+		event.setDate(new Date());
+		event.setName("Event 2");
+		Location location = new Location(-100, 25);
+		event.setLocation(location);
+		
+		DataStorage.eventData.put(event.getEventID(), event);
+		
+		//Create Student to add to the newly created Event
+		Student student1 = new Student();
+		student1.setFirstName("John");
+		student1.setLastName("Davis");
+		student1.setEmail("JohnDavis@email.com");
+		student1.setId(2);
+		
+		eventServiceImpl.addStudentToEvent(student1, 2);
+		assertEquals(student1, DataStorage.eventData.get(2).getStudents().get(0));
+	}
+	
+	@Test
+	void testDeleteEvent_GoodCase() {
+		int eventID = 1;
+		eventServiceImpl.deleteEvent(eventID);
+		assertEquals(null, DataStorage.eventData.get(eventID));
 	}
 	
 }
