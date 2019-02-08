@@ -61,19 +61,89 @@ class EventServiceImplTest {
 		DataStorage.eventData.clear();
 	}
 
-	@Test
-	void testUpdateEventName_GoodCase() throws StudyUpException {
-		int eventID = 1;
-		eventServiceImpl.updateEventName(eventID, "Renamed Event 1");
-		assertEquals("Renamed Event 1", DataStorage.eventData.get(eventID).getName());
+//	@Test
+//	//example
+//	void testUpdateEventName_GoodCase() throws StudyUpException {
+//		int eventID = 1;
+//		eventServiceImpl.updateEventName(eventID, "Renamed Event 1");
+//		assertEquals("Renamed Event 1", DataStorage.eventData.get(eventID).getName());
+//	}
+//	
+//	@Test
+//	//example
+//	void testUpdateEvent_WrongEventID_badCase() {
+//		int eventID = 3;
+//		Assertions.assertThrows(StudyUpException.class, () -> {
+//			eventServiceImpl.updateEventName(eventID, "Renamed Event 3");
+//		  });
+//	}
+	
+	@Test 
+	void testAddStudent_updatesSize_GoodCase() throws StudyUpException{
+		Student student1 = new Student();
+		student1.setFirstName("Jane");
+		student1.setLastName("Doe");
+		student1.setEmail("JaneDoe@email.com");
+		student1.setId(2);	
+		Event event = DataStorage.eventData.get(1);
+		int priorSize = event.getStudents().size();
+		eventServiceImpl.addStudentToEvent(student1, 1);
+		event = DataStorage.eventData.get(1);
+		int newSize = event.getStudents().size();
+		assert(newSize == priorSize + 1);
+	}
+	
+	@Test void testAddStudent_addThirdStudent_BadCase() throws StudyUpException {
+		//Create Student
+		Student student1 = new Student();
+		student1.setFirstName("Jane");
+		student1.setLastName("Doe");
+		student1.setEmail("JaneDoe@email.com");
+		student1.setId(2);		
+		eventServiceImpl.addStudentToEvent(student1, 1);
+		
+		//Create Student
+		Student student2 = new Student();
+		student2.setFirstName("Jonathan");
+		student2.setLastName("Doe");
+		student2.setEmail("JonDoe@email.com");
+		student2.setId(3);
+		Assertions.assertThrows(StudyUpException.class, () -> {
+			eventServiceImpl.addStudentToEvent(student2, 1);
+		  });
+		
+	}
+	
+	@Test 
+	void testActiveEvents_GoodCase() {
+		Event event1 = DataStorage.eventData.get(1);
+		//set date to future
+		Date date = new Date(event1.getDate().getTime() + 500000);
+		event1.setDate(date);
+		DataStorage.eventData.put(1, event1);
+		
+		List<Event> events = eventServiceImpl. getActiveEvents();
+		for(Event e: events) {
+			Date currDate = new Date();
+			//checks if currDate comes before event date
+			assert(currDate.before(e.getDate()));
+		}
 	}
 	
 	@Test
-	void testUpdateEvent_WrongEventID_badCase() {
-		int eventID = 3;
-		Assertions.assertThrows(StudyUpException.class, () -> {
-			eventServiceImpl.updateEventName(eventID, "Renamed Event 3");
-		  });
+	void testActiveEvents_notActiveEvent_BadCase() {
+		Event event1 = DataStorage.eventData.get(1);
+		//set date to past
+		Date date = new Date(0);
+		event1.setDate(date);
+		DataStorage.eventData.put(1, event1);
+		
+		List<Event> events = eventServiceImpl.getActiveEvents();
+		for(Event e: events) {
+			Date currDate = new Date();
+			//checks if currDate comes before event date
+			assert(currDate.before(e.getDate()));
+		}
 	}
 	
 }
