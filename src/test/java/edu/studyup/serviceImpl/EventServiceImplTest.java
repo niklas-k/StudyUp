@@ -21,17 +21,17 @@ import edu.studyup.util.DataStorage;
 import edu.studyup.util.StudyUpException;
 
 class EventServiceImplTest {
-
+	
 	EventServiceImpl eventServiceImpl;
-
+	
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
 	}
-
+	
 	@AfterAll
 	static void tearDownAfterClass() throws Exception {
 	}
-
+	
 	@BeforeEach
 	void setUp() throws Exception {
 		eventServiceImpl = new EventServiceImpl();
@@ -55,12 +55,12 @@ class EventServiceImplTest {
 		
 		DataStorage.eventData.put(event.getEventID(), event);
 	}
-
+	
 	@AfterEach
 	void tearDown() throws Exception {
 		DataStorage.eventData.clear();
 	}
-
+	
 	@Test
 	//example
 	void testUpdateEventName_GoodCase() throws StudyUpException {
@@ -71,80 +71,11 @@ class EventServiceImplTest {
 	
 	@Test
 	//example
-	void testUpdateEvent_WrongEventID_badCase() {
+	void testUpdateEventName_WrongEventID_BadCase() {
 		int eventID = 3;
 		Assertions.assertThrows(StudyUpException.class, () -> {
 			eventServiceImpl.updateEventName(eventID, "Renamed Event 3");
 		  });
-	}
-
-	@Test 
-	void testAddStudent_updatesSize_GoodCase() throws StudyUpException{
-		Student student1 = new Student();
-		student1.setFirstName("Jane");
-		student1.setLastName("Doe");
-		student1.setEmail("JaneDoe@email.com");
-		student1.setId(2);	
-		Event event = DataStorage.eventData.get(1);
-		int priorSize = event.getStudents().size();
-		eventServiceImpl.addStudentToEvent(student1, 1);
-		event = DataStorage.eventData.get(1);
-		int newSize = event.getStudents().size();
-		assert(newSize == priorSize + 1);
-	}
-
-	@Test void testAddStudent_addThirdStudent_BadCase() throws StudyUpException {
-		//Create Student
-		Student student1 = new Student();
-		student1.setFirstName("Jane");
-		student1.setLastName("Doe");
-		student1.setEmail("JaneDoe@email.com");
-		student1.setId(2);		
-		eventServiceImpl.addStudentToEvent(student1, 1);
-		
-		//Create Student
-		Student student2 = new Student();
-		student2.setFirstName("Jonathan");
-		student2.setLastName("Doe");
-		student2.setEmail("JonDoe@email.com");
-		student2.setId(3);
-		
-		Assertions.assertThrows(StudyUpException.class, () -> {
-			eventServiceImpl.addStudentToEvent(student2, 1);
-		  });
-		
-	}
-	
-	@Test 
-	void testActiveEvents_GoodCase() {
-		Event event1 = DataStorage.eventData.get(1);
-		//set date to future
-		Date date = new Date(event1.getDate().getTime() + 500000);
-		event1.setDate(date);
-		DataStorage.eventData.put(1, event1);
-		
-		List<Event> events = eventServiceImpl. getActiveEvents();
-		for(Event e: events) {
-			Date currDate = new Date();
-			//checks if currDate comes before event date
-			assert(currDate.before(e.getDate()));
-		}
-	}
-	
-	@Test
-	void testActiveEvents_notActiveEvent_BadCase() {
-		Event event1 = DataStorage.eventData.get(1);
-		//set date to past
-		Date date = new Date(0);
-		event1.setDate(date);
-		DataStorage.eventData.put(1, event1);
-		
-		List<Event> events = eventServiceImpl.getActiveEvents();
-		for(Event e: events) {
-			Date currDate = new Date();
-			//checks if currDate comes before event date
-			assert(currDate.before(e.getDate()));
-		}
 	}
 	
 	@Test
@@ -171,7 +102,107 @@ class EventServiceImplTest {
 	}
 	
 	@Test
-	void testAddStudentToEvent_NullEvent_BadCase() {
+	void testActiveEvents_GoodCase() {
+		Event event1 = DataStorage.eventData.get(1);
+		//set date to future
+		Date date = new Date(event1.getDate().getTime() + 500000);
+		event1.setDate(date);
+		DataStorage.eventData.put(1, event1);
+		
+		List<Event> events = eventServiceImpl.getActiveEvents();
+		for(Event e: events) {
+			Date currDate = new Date();
+			//checks if currDate comes before event date
+			assert(currDate.before(e.getDate()));
+		}
+	}
+	
+	@Test
+	void testActiveEvents_NotActiveEvent_BadCase() {
+		Event event1 = DataStorage.eventData.get(1);
+		//set date to past
+		Date date = new Date(0);
+		event1.setDate(date);
+		DataStorage.eventData.put(1, event1);
+		
+		List<Event> events = eventServiceImpl.getActiveEvents();
+		for(Event e: events) {
+			Date currDate = new Date();
+			//checks if currDate comes before event date
+			assert(currDate.before(e.getDate()));
+		}
+	}
+	
+	@Test
+	void testPastEvents_GoodCase() {
+		Event event1 = DataStorage.eventData.get(1);
+		//set date to past
+		Date date = new Date(0);
+		event1.setDate(date);
+		DataStorage.eventData.put(1, event1);
+		
+		List<Event> events = eventServiceImpl.getPastEvents();
+		for(Event e: events) {
+			Date currDate = new Date();
+			//checks if currDate comes after event date
+			assert(currDate.after(e.getDate()));
+		}
+	}
+	
+	@Test
+	void testPastEvents_NoPastEvent_GoodCase() {
+		Event event1 = DataStorage.eventData.get(1);
+		//set date to future
+		Date date = new Date(event1.getDate().getTime() + 500000);
+		event1.setDate(date);
+		DataStorage.eventData.put(1, event1);
+		
+		assertEquals(0, eventServiceImpl.getPastEvents().size());
+	}
+	
+	@Test
+	void testAddStudent_UpdatesSize_GoodCase() throws StudyUpException{
+		//Create Student
+		Student student1 = new Student();
+		student1.setFirstName("Jane");
+		student1.setLastName("Doe");
+		student1.setEmail("JaneDoe@email.com");
+		student1.setId(2);
+		
+		Event event = DataStorage.eventData.get(1);
+		int priorSize = event.getStudents().size();
+		
+		eventServiceImpl.addStudentToEvent(student1, 1);
+		event = DataStorage.eventData.get(1);
+		
+		int newSize = event.getStudents().size();
+		assert(newSize == priorSize + 1);
+	}
+	
+	@Test
+	void testAddStudent_AddThirdStudent_BadCase() throws StudyUpException {
+		//Create Student
+		Student student1 = new Student();
+		student1.setFirstName("Jane");
+		student1.setLastName("Doe");
+		student1.setEmail("JaneDoe@email.com");
+		student1.setId(2);		
+		eventServiceImpl.addStudentToEvent(student1, 1);
+		
+		//Create Student
+		Student student2 = new Student();
+		student2.setFirstName("Jonathan");
+		student2.setLastName("Doe");
+		student2.setEmail("JonDoe@email.com");
+		student2.setId(3);
+		
+		Assertions.assertThrows(StudyUpException.class, () -> {
+			eventServiceImpl.addStudentToEvent(student2, 1);
+		  });
+	}
+	
+	@Test
+	void testAddStudent_EventWithOutStudents_BadCase() {
 		int eventID = 2;
 		
 		//Create Student
