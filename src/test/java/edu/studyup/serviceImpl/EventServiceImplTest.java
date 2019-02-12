@@ -79,6 +79,12 @@ class EventServiceImplTest {
 	}
 	
 	@Test
+	void testUpdateEventName_NameEdgeCase_GoodCase() throws StudyUpException {
+		int eventID = 1;
+		eventServiceImpl.updateEventName(eventID, "This name is valid. ");
+	}
+	
+	@Test
 	void testUpdateEventName_NameTooLong_BadCase() {
 		int eventID = 1;
 		Assertions.assertThrows(StudyUpException.class, () -> {
