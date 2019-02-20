@@ -53,12 +53,13 @@ class EventServiceImplTest {
 		eventStudents.add(student);
 		event.setStudents(eventStudents);
 		
-		DataStorage.eventData.put(event.getEventID(), event);
+		//DataStorage.eventData.put(event.getEventID(), event);
+		DataStorage.addEvent(event.getEventID(), event);
 	}
 	
 	@AfterEach
 	void tearDown() throws Exception {
-		DataStorage.eventData.clear();
+		DataStorage.emptyData();
 	}
 	
 	@Test
@@ -66,7 +67,7 @@ class EventServiceImplTest {
 	void testUpdateEventName_GoodCase() throws StudyUpException {
 		int eventID = 1;
 		eventServiceImpl.updateEventName(eventID, "Renamed Event 1");
-		assertEquals("Renamed Event 1", DataStorage.eventData.get(eventID).getName());
+		assertEquals("Renamed Event 1", DataStorage.getEvent(eventID).getName());
 	}
 	
 	@Test
@@ -109,11 +110,11 @@ class EventServiceImplTest {
 	
 	@Test
 	void testActiveEvents_GoodCase() {
-		Event event1 = DataStorage.eventData.get(1);
+		Event event1 = DataStorage.getEvent(1);
 		//set date to future
 		Date date = new Date(event1.getDate().getTime() + 500000);
 		event1.setDate(date);
-		DataStorage.eventData.put(1, event1);
+		DataStorage.addEvent(1, event1);
 		
 		List<Event> events = eventServiceImpl.getActiveEvents();
 		for(Event e: events) {
@@ -125,11 +126,11 @@ class EventServiceImplTest {
 	
 	@Test
 	void testActiveEvents_NotActiveEvent_BadCase() {
-		Event event1 = DataStorage.eventData.get(1);
+		Event event1 = DataStorage.getEvent(1);
 		//set date to past
 		Date date = new Date(0);
 		event1.setDate(date);
-		DataStorage.eventData.put(1, event1);
+		DataStorage.addEvent(1, event1);
 		
 		List<Event> events = eventServiceImpl.getActiveEvents();
 		for(Event e: events) {
@@ -141,11 +142,11 @@ class EventServiceImplTest {
 	
 	@Test
 	void testPastEvents_GoodCase() {
-		Event event1 = DataStorage.eventData.get(1);
+		Event event1 = DataStorage.getEvent(1);
 		//set date to past
 		Date date = new Date(0);
 		event1.setDate(date);
-		DataStorage.eventData.put(1, event1);
+		DataStorage.addEvent(1, event1);
 		
 		List<Event> events = eventServiceImpl.getPastEvents();
 		for(Event e: events) {
@@ -157,11 +158,11 @@ class EventServiceImplTest {
 	
 	@Test
 	void testPastEvents_NoPastEvent_GoodCase() {
-		Event event1 = DataStorage.eventData.get(1);
+		Event event1 = DataStorage.getEvent(1);
 		//set date to future
 		Date date = new Date(event1.getDate().getTime() + 500000);
 		event1.setDate(date);
-		DataStorage.eventData.put(1, event1);
+		DataStorage.addEvent(1, event1);
 		
 		assertEquals(0, eventServiceImpl.getPastEvents().size());
 	}
@@ -175,11 +176,11 @@ class EventServiceImplTest {
 		student1.setEmail("JaneDoe@email.com");
 		student1.setId(2);
 		
-		Event event = DataStorage.eventData.get(1);
+		Event event = DataStorage.getEvent(1);
 		int priorSize = event.getStudents().size();
 		
 		eventServiceImpl.addStudentToEvent(student1, 1);
-		event = DataStorage.eventData.get(1);
+		event = DataStorage.getEvent(1);
 		
 		int newSize = event.getStudents().size();
 		assert(newSize == priorSize + 1);
@@ -233,7 +234,7 @@ class EventServiceImplTest {
 		Location location = new Location(-100, 25);
 		event.setLocation(location);
 		
-		DataStorage.eventData.put(event.getEventID(), event);
+		DataStorage.addEvent(event.getEventID(), event);
 		
 		//Create Student to add to the newly created Event
 		Student student1 = new Student();
@@ -243,14 +244,14 @@ class EventServiceImplTest {
 		student1.setId(2);
 		
 		eventServiceImpl.addStudentToEvent(student1, 2);
-		assertEquals(student1, DataStorage.eventData.get(2).getStudents().get(0));
+		assertEquals(student1, DataStorage.getEvent(2).getStudents().get(0));
 	}
 	
 	@Test
 	void testDeleteEvent_GoodCase() {
 		int eventID = 1;
 		eventServiceImpl.deleteEvent(eventID);
-		assertEquals(null, DataStorage.eventData.get(eventID));
+		assertEquals(null, DataStorage.getEvent(eventID));
 	}
 	
 }

@@ -15,33 +15,38 @@ public class EventServiceImpl implements EventService {
 
 	@Override
 	public Event updateEventName(int eventID, String name) throws StudyUpException {
-		Event event = DataStorage.eventData.get(eventID);
+		Event event = DataStorage.getEvent(eventID);
 		if(event == null) {
 			throw new StudyUpException("No event found.");
 		}
 
-		if(name.length() >= 20) {
+		if(name.length() > 20) {
 			throw new StudyUpException("Length too long. Maximun is 20");
 		}
+		
+		if(name.length() <= 0) {
+			throw new StudyUpException("No name given.");
+		}
+		
 		event.setName(name);
-		DataStorage.eventData.put(eventID, event);
-		event = DataStorage.eventData.get(event.getEventID());
+		DataStorage.addEvent(eventID, event);
+		event = DataStorage.getEvent(event.getEventID());
 		return event;
 	}
 
 	@Override
 	public List<Event> getActiveEvents() {
-		Map<Integer, Event> eventData = DataStorage.eventData;
+		Map<Integer, Event> eventData = DataStorage.copyData();
 		List<Event> activeEvents = new ArrayList<>();
 		
-		eventData.forEach((i, e) -> activeEvents.add(e));
+		eventData.forEach((i, e) -> { if(e.getDate().after(new Date())) { activeEvents.add(e); }; });
 		
 		return activeEvents;
 	}
 
 	@Override
 	public List<Event> getPastEvents() {
-		Map<Integer, Event> eventData = DataStorage.eventData;
+		Map<Integer, Event> eventData = DataStorage.copyData();
 		List<Event> pastEvents = new ArrayList<>();
 		
 		eventData.forEach((i, e) -> { if(e.getDate().before(new Date())) { pastEvents.add(e); }; });
@@ -51,7 +56,7 @@ public class EventServiceImpl implements EventService {
 
 	@Override
 	public Event addStudentToEvent(Student student, int eventID) throws StudyUpException {
-		Event event = DataStorage.eventData.get(eventID);
+		Event event = DataStorage.getEvent(eventID);
 		if(event == null) {
 			throw new StudyUpException("No event found.");
 		}
@@ -59,14 +64,22 @@ public class EventServiceImpl implements EventService {
 		if(presentStudents == null) {
 			presentStudents = new ArrayList<>();
 		}
+		
+		if(presentStudents.size() >= 2) {
+			throw new StudyUpException("Maximum occupancy.");
+		}
+		
 		presentStudents.add(student);
 		event.setStudents(presentStudents);		
-		return DataStorage.eventData.put(eventID, event);
+		DataStorage.addEvent(eventID, event);
+		return DataStorage.getEvent(eventID);
 	}
 
 	@Override
 	public Event deleteEvent(int eventID) {		
-		return DataStorage.eventData.remove(eventID);
+		Event e = DataStorage.getEvent(eventID);
+		DataStorage.removeEvent(eventID);
+		return e;
 	}
 
 }
