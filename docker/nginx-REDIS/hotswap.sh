@@ -1,6 +1,6 @@
 #/!bin/bash
 PARAM=$1
-FILE=test.conf
+FILE=/etc/nginx/nginx.conf
 PREV=$(awk '/    server/{print $2}' $FILE)
 
 if [ "$PARAM:6379;" = $PREV ]
